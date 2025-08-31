@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
 import { registerApiRoutes } from './api.js';
-import { registerWebSocketHandlers } from './ws.js';
+import { registerWebSocketHandlers, cleanupWebSockets } from './ws.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
@@ -67,15 +67,46 @@ async function start() {
   }
 }
 
-process.on('SIGINT', async () => {
-  console.log('\nShutting down gracefully...');
-  await server.close();
-  process.exit(0);
+let isShuttingDown = false;
+
+async function shutdown(signal: string) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  
+  console.log(`\n${signal} received. Shutting down...`);
+  
+  // Clean up WebSockets immediately
+  cleanupWebSockets();
+  
+  // Force exit after a short delay to allow cleanup
+  setTimeout(() => {
+    console.log('Forcing exit...');
+    process.exit(0);
+  }, 100);
+  
+  try {
+    // Try to close the server gracefully but don't wait too long
+    await server.close();
+    console.log('Server closed successfully');
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during shutdown:', err);
+    process.exit(1);
+  }
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+// Handle uncaught errors
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught exception:', err);
+  shutdown('uncaughtException');
 });
 
-process.on('SIGTERM', async () => {
-  await server.close();
-  process.exit(0);
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled rejection at:', promise, 'reason:', reason);
+  shutdown('unhandledRejection');
 });
 
 start();

@@ -10,6 +10,7 @@ interface ExtendedWebSocket extends WebSocket {
 }
 
 const clients = new Map<string, Set<ExtendedWebSocket>>();
+let heartbeatInterval: NodeJS.Timeout | null = null;
 
 export async function registerWebSocketHandlers(server: FastifyInstance) {
   server.get('/ws/:roomId', { websocket: true }, (socket, req) => {
@@ -68,7 +69,7 @@ export async function registerWebSocketHandlers(server: FastifyInstance) {
     });
   });
   
-  const heartbeatInterval = setInterval(() => {
+  heartbeatInterval = setInterval(() => {
     clients.forEach((roomClients) => {
       roomClients.forEach((socket) => {
         if (socket.isAlive === false) {
@@ -81,8 +82,18 @@ export async function registerWebSocketHandlers(server: FastifyInstance) {
     });
   }, 30000);
   
-  server.addHook('onClose', () => {
-    clearInterval(heartbeatInterval);
+  server.addHook('onClose', async () => {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
+    // Close all WebSocket connections
+    clients.forEach((roomClients) => {
+      roomClients.forEach((socket) => {
+        socket.close();
+      });
+    });
+    clients.clear();
   });
 }
 
@@ -168,4 +179,17 @@ export function broadcastTempoStateToAll(_server: FastifyInstance) {
       });
     }
   });
+}
+
+export function cleanupWebSockets() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+  clients.forEach((roomClients) => {
+    roomClients.forEach((socket) => {
+      socket.close();
+    });
+  });
+  clients.clear();
 }
