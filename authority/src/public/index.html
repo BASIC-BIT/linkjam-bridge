@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkJam Authority Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .room-selector {
+            margin-bottom: 30px;
+        }
+        
+        .room-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .room-selector input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .room-selector input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-group label {
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .control-group input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #555;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .status {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .status h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .status-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .status-label {
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .status-value {
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .boundary-countdown {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .countdown-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .countdown-value {
+            font-size: 36px;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.connected {
+            background: #4caf50;
+        }
+        
+        .status-dot.disconnected {
+            background: #f44336;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+            }
+        }
+        
+        .log {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #555;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+        }
+        
+        .log-entry.error {
+            color: #f44336;
+        }
+        
+        .log-entry.success {
+            color: #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎵 LinkJam Authority</h1>
+        <p class="subtitle">Remote DJ Synchronization Control Panel</p>
+        
+        <div class="connection-status">
+            <div class="status-dot disconnected" id="connectionDot"></div>
+            <span id="connectionText">Disconnected</span>
+        </div>
+        
+        <div class="room-selector">
+            <label for="roomId">Room ID</label>
+            <input type="text" id="roomId" placeholder="Enter room name (e.g., main)" value="main">
+        </div>
+        
+        <div class="status">
+            <h3>Current State</h3>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">BPM</span>
+                    <span class="status-value" id="currentBpm">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">BPI</span>
+                    <span class="status-value" id="currentBpi">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Bar</span>
+                    <span class="status-value" id="currentBar">--</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Beat</span>
+                    <span class="status-value" id="currentBeat">--</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="boundary-countdown">
+            <div class="countdown-label">Next Boundary In</div>
+            <div class="countdown-value" id="boundaryCountdown">--.-s</div>
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="bpmInput">BPM (20-999)</label>
+                <input type="number" id="bpmInput" min="20" max="999" step="0.1" value="174">
+            </div>
+            <div class="control-group">
+                <label for="bpiInput">BPI (1-64)</label>
+                <input type="number" id="bpiInput" min="1" max="64" step="1" value="4">
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-primary" id="updateBtn">Update Tempo</button>
+            <button class="btn-secondary" id="resetEpochBtn">Reset Epoch</button>
+            <button class="btn-secondary" id="connectBtn">Connect</button>
+            <button class="btn-secondary" id="refreshBtn">Refresh</button>
+        </div>
+        
+        <div class="log" id="log">
+            <div class="log-entry">Ready to connect...</div>
+        </div>
+    </div>
+    
+    <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+# Node.js / Authority
+authority/node_modules/
+authority/dist/
+authority/*.log
+authority/.env
+authority/.env.local
+
+# .NET / Companion
+companion/**/bin/
+companion/**/obj/
+companion/**/.vs/
+companion/**/*.user
+companion/**/*.suo
+companion/**/*.userprefs
+companion/**/[Dd]ebug/
+companion/**/[Rr]elease/
+companion/**/[Bb]uild/
+companion/.idea/
+companion/*.sln.DotSettings.user
+
+# Carabiner executable (should be downloaded by user)
+companion/LinkJam.Companion/ThirdParty/carabiner.exe
+companion/LinkJam.Companion/ThirdParty/*.exe
+companion/LinkJam.Companion/ThirdParty/*.dll
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+
+# Build outputs
+*.pid
+*.seed
+*.pid.lock
+
+# Package manager locks (keep these for reproducible builds)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
